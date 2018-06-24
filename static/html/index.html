@@ -1,0 +1,29 @@
+<html>
+<head>
+	<title>CJ Pais</title>
+	<script type="stylesheet" src="/static/css/main.css"></script>
+	<script type="text/javascript" src="/static/js/vue.min.js"></script>
+	<script type="text/javascript" src="/static/js/axios.min.js"></script>
+</head>
+<body>
+	<div id="app">
+		{{ posts }}
+	</div>
+
+	<script type="text/javascript">
+		var app = new Vue({
+			el: '#app',
+			data () {
+				return {
+					info: null
+				}
+			},
+			mounted () {
+				axios
+				.get("/days/")
+				.then(response => (this.posts = response))
+			}
+		})
+	</script>
+</body>
+</html>

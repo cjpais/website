@@ -6,6 +6,7 @@
 *.dylib
 *.swp
 timeline
+website
 
 # Test binary, build with `go test -c`
 *.test

@@ -1,0 +1,61 @@
+<html>
+<head>
+	<title>New Moment</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="/static/css/sakura.css">
+	<link rel="stylesheet" href="/static/css/main.css">
+	<script type="text/javascript" src="/static/js/luxon.min.js"></script>
+	<script type="text/javascript" src="/static/js/vue.min.js"></script>
+	<script type="text/javascript" src="/static/js/axios.min.js"></script>
+</head>
+<body>
+	<div>
+		<a href="/">
+			<div id="header" class="header">
+				<img src="/static/img/header.jpg"></img>	
+				<h1>CJ Pais</h1>
+			</div>
+		</a>
+		<hr>
+		<div id="app">
+			<div>
+				<form method="post" enctype="multipart/form-data" name="newmoment">
+					<div>
+						<label for="type">Type</label>
+						<select id="type" name="type">
+							<option value="website.post">Post</option>
+							<option value="website.photo">Photo</option>
+							<option value="2">Video</option>
+							<option value="3">Long Post</option>
+							<option value="4">Todo</option>
+						</select>
+					</div>
+					<div>
+						<label for="date">Date:</label>
+						<input id="date" type="date" name="date"/>
+						<input id="tz" type="text" name="tz" hidden/>
+					</div>
+					<div>
+						<label for="time">Time:</label>
+						<input id="time" type="time" name="time"/>
+					</div>
+					<div>
+						<label for="summary">Summary:</label>
+						<textarea name="summary" rows="1" cols="80"></textarea>
+					</div>
+					<div>
+						<label for="content">Content:</label>
+						<textarea name="content" rows="10" cols="80"></textarea>
+					</div>
+					<div>
+						<label for="image">Image:</label>
+						<input type="file" name="image" accept="image/*">	
+					</div>
+					<button type="submit">New Post</button>
+				</form>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript" src="/static/js/new.js"></script>
+</body>
+</html>

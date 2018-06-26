@@ -1,0 +1,57 @@
+@viewport {
+  width: device-width;
+  zoom: 1.0;
+}
+
+.header {
+	display: grid;
+	grid-gap: 1em;
+	grid-template-columns: 4em auto;
+	padding: 1em;
+	color: #4a4a4a
+}
+
+.header > img {
+	border-radius: 50%;
+	width: 4em;
+	height: auto;
+}
+
+.header > h2 {
+	margin: .5em;
+	align-self: center;
+}
+
+.posts {
+	display: grid;
+	grid-gap: 1em;
+	grid-template-columns: 2fr 10fr;
+	padding-bottom: 1.5em;
+	white-space: pre-wrap;
+}
+
+.posts > img {
+	padding-bottom: 1em;
+}
+
+.post {
+	display: grid;
+	grid-template-columns: auto;
+	margin-bottom: .1em;
+}
+
+.summary {
+	font-size: 1.35em;
+	grid-row: 1 / auto;
+	font-size: 1.35em;
+	position: relative;
+	top: -6px;
+}
+
+.time {
+	font-family: 'Merriweather Sans', sans-serif;
+}
+
+.time-center {
+	align-self: center;
+}

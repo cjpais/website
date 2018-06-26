@@ -1,29 +1,63 @@
 <html>
 <head>
 	<title>CJ Pais</title>
-	<script type="stylesheet" src="/static/css/main.css"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://fonts.googleapis.com/css?family=Merriweather" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Merriweather+Sans" rel="stylesheet">
+	<link rel="stylesheet" href="/static/css/sakura.css">
+	<link rel="stylesheet" href="/static/css/main.css">
+	<script type="text/javascript" src="/static/js/luxon.min.js"></script>
 	<script type="text/javascript" src="/static/js/vue.min.js"></script>
 	<script type="text/javascript" src="/static/js/axios.min.js"></script>
 </head>
 <body>
-	<div id="app">
-		{{ posts }}
+	<div>
+		<a href="/">
+			<div id="header" class="header">
+				<img src="/static/img/header.jpg"></img>	
+				<h2>CJ Pais</h2>
+			</div>
+		</a>
+		<hr>
+		<div id="app">
+			<template v-for="(year, yidx) in data">
+				<template v-for="(month, midx) in year.Months">
+					<template v-for="(day, didx) in month.Days">
+						<h3>{{ year.Int | dateformat(month.Int , day.Int ) }}</h3>
+						<template v-for="(moment, midx) in day.Moments">
+							<div v-for="(post, key) in moment" class="posts">
+								<div class="time"><b>{{ post.Time | timeformat }}:</b></div>
+								<post v-if="key == 'website.post'" v-bind:post="post"></post>
+								<photo v-else-if="key == 'website.photo'" v-bind:post="post"></photo>
+							</div>
+						</div>
+					</template>
+				</template>
+			</template>
+		</template>
 	</div>
 
-	<script type="text/javascript">
-		var app = new Vue({
-			el: '#app',
-			data () {
-				return {
-					info: null
-				}
-			},
-			mounted () {
-				axios
-				.get("/days/")
-				.then(response => (this.posts = response))
-			}
-		})
-	</script>
+
+	<template id="post-component">
+		<div v-if='post.Summary != ""' style="display: grid; grid-template-columns: auto;">
+			<b class="summary">{{ post.Summary }}</b>
+			<div style="grid-row: 2">{{ post.Content }}</div>
+		</div>
+		<div v-else>
+			<div class="col-2">{{ post.Content }}</div>
+		</div>
+        </template>
+
+	<template id="photo-component">
+		<div v-if='post.Summary != ""'>
+			<b class="summary">{{ post.Summary }}</b>
+			<img v-bind:src="post.Path"></img>
+		</div>
+		<div v-else>
+			<img v-bind:src="post.Path"></img>
+		</div>
+	</template>
+
+	<script type="text/javascript" src="/static/js/main.js"></script>
 </body>
 </html>

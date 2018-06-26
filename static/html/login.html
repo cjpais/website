@@ -1,0 +1,27 @@
+<html>
+<head>
+	<title>Login to cjpais.com</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="/static/css/sakura.css">
+	<script type="text/javascript" src="/static/js/axios.min.js"></script>
+	<link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+	<div>
+		<div id="header" class="header">
+			<img src="/static/img/header.jpg"></img>	
+			<h1>CJ Pais</h1>
+		</div>
+		<hr>
+		<div>
+			<form action="/api/login">
+				Username:<br>
+				<input type="text" name="username"><br>
+				Password:<br>
+				<input type="password" name="password"><br>
+				<input type="submit" value="Submit">
+			</form>
+		</div>
+	</div>
+</body>
+</html>

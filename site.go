@@ -3,108 +3,85 @@ package main
 import (
 	"os"
 	"log"
-	"fmt"
-	"time"
+	//"fmt"
+	//"time"
+	"sort"
+	"bytes"
 	"strconv"
 
 	"net/http"
-	"math/rand"
+	//"math/rand"
 	"io/ioutil"
 	"encoding/json"
 	"path/filepath"
+
+	"golang.org/x/crypto/scrypt"
+	//"github.com/gorilla/sessions"
 )
 
+
 type Year struct {
-	Year int
+	String string
+	Int int
 	Months []*Month
 }
 
 type Month struct {
-	Year *Year
-	Month int
+	//Year *Year
+	String string
+	Int int
 	Days []*Day
 }
 
 type Day struct {
-	Month *Month
-	Day int
-	Posts []*Post
+	//Month *Month
+	String string
+	Int int
+	Moments []map[string]Moment
 }
 
-type Post struct {
-	Time time.Time
-	//Timezone string
-	Day *Day
-	Summary string
-	Content string
-}
-
-func (p *Post) save() error {
-	t := p.Time
-	path := fmt.Sprintf("timeline/%v/%02d/%v/%v", t.Year(), t.Month(), t.Day(), t.Unix())
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		os.MkdirAll(path, os.ModePerm)
+func loadMoment(path string) (map[string]Moment, error) {
+	// go read the dir and check the filename and load proper moment
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return nil, err
 	}
-	sfilename := path + "/summary"
-	cfilename := path + "/content"
-	summary := []byte(p.Summary)
-	content := []byte(p.Content)
-	e := ioutil.WriteFile(sfilename, summary, 0755)
-	if e != nil {
-		return e
-	}
-	return ioutil.WriteFile(cfilename, content, 0755)
-}
 
-func createPost(t time.Time, summary, content string) *Post {
-	return &Post{Time: t, Summary: summary, Content: content}
-}
-
-func loadPost(path string) (*Post, error) {
-	summary := ""
-	content := ""
-	sfilename := path + "/summary"
-	cfilename := path + "/content"
-	timeint, _ := strconv.ParseInt(filepath.Base(path), 10, 64)
-	time := time.Unix(timeint, 0)
-	if _, err := os.Stat(sfilename); err == nil {
-		// summary exists so load it
-		data, err := ioutil.ReadFile(sfilename)
-		if err != nil {
-			return nil, err
+	moment := map[string]Moment{}
+	for _, file := range files {
+		switch file.Name() {
+			case POST:
+				moment[POST] = &Post{}
+				moment[POST].load(path)
+				return moment, nil
+			case PHOTO:
+				moment[PHOTO] = &Photo{}
+				moment[PHOTO].load(path)
+				return moment, nil
 		}
-		summary = string(data[:])
 	}
-	if _, err := os.Stat(cfilename); err == nil {
-		data, err := ioutil.ReadFile(cfilename)
-		if err != nil {
-			return nil, err
-		}
-		content = string(data[:])
-	}
-	return &Post{Time: time, Summary: summary, Content: content}, nil
+	return nil, nil
 }
 
 func loadDay(path string) (*Day, error) {
-	var posts []*Post
-	// get posts
+	var moments []map[string]Moment
+
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		return nil, err
 	}
 	for _, file := range files {
 		if file.IsDir() {
-			ppath := path + "/" + file.Name()
-			//log.Println("loading post", ppath)
-			post, err := loadPost(ppath)
+			mpath := path + "/" + file.Name()
+			moment, err := loadMoment(mpath)
 			if err != nil {
 				return nil, err
 			}
-			posts = append(posts, post)
+			moments = append(moments, moment)
 		}
 	}
 	d, _ := strconv.Atoi(filepath.Base(path))
-	day := Day{Day: d, Posts: posts}
+	day := Day{Int:d, Moments:moments}
 	return &day, nil
 }
 
@@ -121,8 +98,11 @@ func loadDays(path string) ([]*Day, error) {
 		if err != nil {
 			return nil, err
 		}
-		days = append(days, day)
+		days = append([]*Day{day}, days...)
 	}
+	sort.Slice(days, func(i, j int) bool {
+		return days[i].Int > days[j].Int
+	})
 	return days, nil
 }
 
@@ -141,8 +121,8 @@ func loadMonths(path string) ([]*Month, error) {
 			return nil, err
 		}
 		m, _ := strconv.Atoi(file.Name())
-		mo := Month{Month: m, Days: days}
-		months = append(months, &mo)
+		mo := Month{Int: m, Days: days}
+		months = append([]*Month{&mo}, months...)
 	}
 	return months, nil
 }
@@ -162,8 +142,8 @@ func loadYears() ([]*Year, error) {
 			return nil, err
 		}
 		y, _ := strconv.Atoi(file.Name())
-		yr := Year{Year: y, Months: months}
-		years = append(years, &yr)
+		yr := Year{Int: y, Months: months}
+		years = append([]*Year{&yr}, years...)
 	}
 	return years, nil
 }
@@ -179,6 +159,7 @@ func daysHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(years)
 }
 
+/*
 func writeTestPosts() {
 	log.Println("Writing New Set of Days")
 	// dirty constants
@@ -194,9 +175,75 @@ func writeTestPosts() {
 		t := time.Unix(rand.Int63n(dt) + min, 0)
 		randc := rand.Intn(len(content))
 		rands := rand.Intn(len(summary))
-		post := createPost(t, summary[rands], content[randc])
+		post := createMoment(t, summary[rands], content[randc])
 		post.save()
 	}
+}
+*/
+
+func newPage(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "cjpais.com")
+	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+	http.ServeFile(w, r, "static/html/new.html")
+}
+
+func loginPage(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "static/html/login.html")
+}
+
+func index(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "static/html/index.html")
+}
+
+func login(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "cjpais.com")
+	r.ParseForm()
+
+	// TODO replace with constant time compare
+	if pass, ok := r.Form["password"]; ok {
+		k, _ := scrypt.Key([]byte(pass[0]), salt, 32768, 8, 1, 32)
+		if user, ok := r.Form["username"]; ok {
+			// use randomly generated username to login
+			if bytes.Compare(k, genpass) == 0 && user[0] == genusername {
+				log.Println("CJ authenticated from:", r.RemoteAddr)
+				session.Values["authenticated"] = true
+				session.Save(r, w)
+			}
+		} else {
+			session.Values["authenticated"] = false
+		}
+	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func newMoment(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "cjpais.com")
+	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	r.ParseMultipartForm(0)
+	// TODO sanitize
+	switch r.Form["type"][0] {
+		case POST:
+			post := Post{}
+			post.saveReq(r)
+		case PHOTO:
+			photo := Photo{}
+			photo.saveReq(r)
+	}
+}
+
+func auth(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "cjpais.com")
+	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+		w.Write([]byte("false"))
+	}
+	w.Write([]byte("true"))
 }
 
 func main() {
@@ -204,13 +251,26 @@ func main() {
 	if len(os.Args) > 1 {
 		os.RemoveAll("timeline/")
 		os.MkdirAll("timeline/", os.ModePerm)
-		writeTestPosts()
+		//writeTestPosts()
 	}
 
-	fs := http.FileServer(http.Dir("static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
-	http.Handle("/", http.FileServer(http.Dir("static/html")))
-	http.HandleFunc("/days/", daysHandler)
+	// serve filesystem parts
+	sfs := http.FileServer(http.Dir("static"))
+	http.Handle("/static/", http.StripPrefix("/static/", sfs))
+	tfs := http.FileServer(http.Dir("timeline"))
+	http.Handle("/timeline/", http.StripPrefix("/timeline/", tfs))
+
+	// serve home/login/new
+	http.HandleFunc("/", index)
+	http.HandleFunc("/login/", loginPage)
+	http.HandleFunc("/new/", newPage)
+
+	// api
+	http.HandleFunc("/api/days", daysHandler)
+	http.HandleFunc("/api/login", login)
+	http.HandleFunc("/api/auth", auth)
+	http.HandleFunc("/api/new", newMoment)
+
 	log.Println("Serving cjpais.com...")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 	"io"
-	//"log"
+	"log"
 	"fmt"
 	"time"
 
@@ -51,6 +51,7 @@ func (p *Post) save() error {
 }
 
 func (p *Post) saveReq(r *http.Request) error {
+	log.Println("saving post")
 	date := r.Form["date"][0]
 	time := r.Form["time"][0]
 	p.Time, _ = getTime(date, time)
@@ -88,6 +89,7 @@ func (p *Photo) save() error {
 }
 
 func (p *Photo) saveReq(r *http.Request) error {
+	log.Println("saving photo")
 	date := r.Form["date"][0]
 	time := r.Form["time"][0]
 	p.Time, _ = getTime(date, time)

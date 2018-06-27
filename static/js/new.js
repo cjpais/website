@@ -13,9 +13,11 @@ document.getElementById("tz").value = Intl.DateTimeFormat().resolvedOptions().ti
 //}
 
 
+// form submission
 var form = document.forms.namedItem("newmoment");
 form.addEventListener("submit", function(e) {
-	console.log("SUBMIT")
+	e.preventDefault();
+
 	var data = new FormData(form);
 	var req = new XMLHttpRequest();
 	req.open("POST", "/api/new", true);
@@ -28,5 +30,45 @@ form.addEventListener("submit", function(e) {
 	};
 
 	req.send(data);
-	e.preventDefault();
 }, false);
+
+function dropHandler(e) {
+	e.preventDefault();
+	dt = e.dataTransfer;
+	files = dt.files;
+	handleFiles(files)
+}
+
+function handleFiles(fs) {
+	files = [...files]
+	files.forEach(uploadFile)
+	previewFile(files[0])
+}
+
+function previewFile(file) {
+	let reader = new FileReader()
+	reader.readAsDataURL(file)
+	reader.onloadend = function() {
+		let img = document.createElement('img')
+		img.src = reader.result
+		// remove text
+		var msg = document.getElementById("dmsg");
+		msg.parentNode.removeChild(msg);
+		document.getElementById('dropzone').appendChild(img)
+	}
+}
+
+function uploadFile(file) {
+	console.log(file)
+}
+
+function clickHandler(e) {
+	console.log("hi");
+}
+
+function dragOverHandler(e) {
+	e.preventDefault();
+	// change the text in the dropzone to be a +
+	message = document.getElementById("dmsg");
+	message.innerHTML = '+';
+}

@@ -198,6 +198,14 @@ func index(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "static/html/index.html")
 }
 
+func logout(w http.ResponseWriter, r *http.Request) {
+	log.Println("logout")
+	session, _ := store.Get(r, "cjpais.com")
+	session.Values["authenticated"] = false
+	session.Save(r, w)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
 func login(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "cjpais.com")
 	r.ParseForm()
@@ -242,8 +250,9 @@ func auth(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "cjpais.com")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
 		w.Write([]byte("false"))
+	} else {
+		w.Write([]byte("true"))
 	}
-	w.Write([]byte("true"))
 }
 
 func main() {
@@ -263,6 +272,7 @@ func main() {
 	// serve home/login/new
 	http.HandleFunc("/", index)
 	http.HandleFunc("/login/", loginPage)
+	http.HandleFunc("/logout/", logout)
 	http.HandleFunc("/new/", newPage)
 
 	// api

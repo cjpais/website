@@ -1,9 +1,6 @@
-function createYears(response) {
-	var list = [];
-	Object.values(response).map((data) => {
-		list.push(data);
-	})
-	return list;
+window.onclick = function(event) {
+	console.log("hit")
+	document.getElementById("dropdown").setAttribute("hidden");
 }
 
 // Define a new component called button-counter
@@ -22,14 +19,27 @@ var app = new Vue({
 	data () {
 		return {
 			data: null,
-			auth: false
+			auth: false,
+			latestIsToday: false,
+			date: null,
 		}
 	},
 	mounted () {
 		axios
 		.get("/api/days")
 		.then(response => {
-			this.data = createYears(response.data);
+			d = luxon.DateTime.local();
+			if (response.data != null) {
+				this.data = this.createYears(response.data);
+				year = this.data[0].Int;
+				month = this.data[0].Months[0].Int;
+				day = this.data[0].Months[0].Days[0].Int;
+				if (d.year == year && d.month == month && d.day == day) {
+					console.log("latest is today")
+					this.latestIsToday = true;
+				}
+			}
+			this.date = d.toLocaleString(luxon.DateTime.DATE_HUGE);
 		})
 		axios.get("/api/auth").then(response => this.auth = response.data)
 	},
@@ -45,4 +55,18 @@ var app = new Vue({
 			return d.toLocaleString(luxon.DateTime.TIME_SIMPLE)
 		}
 	},
+	methods: {
+		createYears: function (response) {
+			var list = [];
+			console.log("create years")
+			Object.values(response).map((data) => {
+				list.push(data);
+			})
+			return list;
+		},
+		newPicker: function () {
+			document.getElementById("dropdown").removeAttribute("hidden")
+			console.log(this)
+		}
+	}
 })

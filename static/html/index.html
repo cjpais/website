@@ -6,30 +6,73 @@
 	<link href="https://fonts.googleapis.com/css?family=Merriweather+Sans" rel="stylesheet">
 	<link rel="stylesheet" href="/static/css/sakura.css">
 	<link rel="stylesheet" href="/static/css/main.css">
+	<link rel="stylesheet" href="/static/css/lity.min.css">
 	<script type="text/javascript" src="/static/js/luxon.min.js"></script>
 	<script type="text/javascript" src="/static/js/vue.min.js"></script>
 	<script type="text/javascript" src="/static/js/axios.min.js"></script>
 </head>
 <body>
-	<div>
-		<a href="/">
-			<div id="header" class="header">
-				<img src="/static/img/header.jpg"></img>	
-				<h2>CJ Pais</h2>
-			</div>
-		</a>
-		<hr>
-		<div id="app">
-			<template v-for="(year, yidx) in data">
-				<template v-for="(month, midx) in year.Months">
-					<template v-for="(day, didx) in month.Days">
+	<a href="/">
+		<div id="header" class="header">
+			<img src="/static/img/header.jpg"></img>	
+			<h2>CJ Pais</h2>
+		</div>
+	</a>
+	<hr>
+	<div id="app">
+		
+		<!-- TODO CLEAN THIS UP -->
+		<!-- THIS IS IF AUTHENTICATED -->
+		<template v-if="auth">
+			authenticated
+			<template v-if="!latestIsToday">
+				<div class="date-grid pre">
+					<h3>{{ date }}</h3>
+					<button v-on:click="newPicker">+</button>
+					<div id="dropdown" class="dropdown-content" hidden>
+						<a href="#">Post</a>
+						<a href="#">Photo</a>
+					</div>
+				</div>
+				<!-- THIS IS ALL HIDDEN UNTIL AFTER + CLICK -->
+				<div class="posts posts-new">
+					<div class="time time-new"><b>11:32AM:</b></div>
+				</div>
+			</template>
+			<template v-else v-for="(year, yidx) in data">
+			<template v-for="(month, midx) in year.Months">
+				<template v-for="(day, didx) in month.Days">
+					<div class="date-grid">
 						<h3>{{ year.Int | dateformat(month.Int , day.Int ) }}</h3>
-						<template v-for="(moment, midx) in day.Moments">
-							<div v-for="(post, key) in moment" class="posts">
-								<div class="time"><b>{{ post.Time | timeformat }}:</b></div>
-								<post v-if="key == 'website.post'" v-bind:post="post"></post>
-								<photo v-else-if="key == 'website.photo'" v-bind:post="post"></photo>
+						<button v-on:click="newPicker">+</button>
+						<div id="dropdown" class="dropdown-content" hidden>
+							<a href="#">Post</a>
+							<a href="#">Photo</a>
+						</div>
+					</div>
+					<template v-for="(moment, midx) in day.Moments">
+						<div v-for="(post, key) in moment" class="posts">
+							<div class="time"><b>{{ post.Time | timeformat }}:</b></div>
+							<post v-if="key == 'website.post'" v-bind:post="post"></post>
+							<photo v-else-if="key == 'website.photo'" v-bind:post="post"></photo>
+								</div>
 							</div>
+						</template>
+					</template>
+				</template>
+			</template>
+		</template>
+
+		<!-- NOT AUTHENTICATED -->
+		<template v-else v-for="(year, yidx) in data">
+			<template v-for="(month, midx) in year.Months">
+				<template v-for="(day, didx) in month.Days">
+					<h3>{{ year.Int | dateformat(month.Int , day.Int ) }}</h3>
+					<template v-for="(moment, midx) in day.Moments">
+						<div v-for="(post, key) in moment" class="posts">
+							<div class="time"><b>{{ post.Time | timeformat }}:</b></div>
+							<post v-if="key == 'website.post'" v-bind:post="post"></post>
+							<photo v-else-if="key == 'website.photo'" v-bind:post="post"></photo>
 						</div>
 					</template>
 				</template>
@@ -37,27 +80,28 @@
 		</template>
 	</div>
 
-
 	<template id="post-component">
 		<div v-if='post.Summary != ""' style="display: grid; grid-template-columns: auto;">
 			<b class="summary">{{ post.Summary }}</b>
 			<div style="grid-row: 2">{{ post.Content }}</div>
 		</div>
 		<div v-else>
-			<div class="col-2">{{ post.Content }}</div>
+			<div>{{ post.Content }}</div>
 		</div>
         </template>
 
 	<template id="photo-component">
 		<div v-if='post.Summary != ""'>
 			<b class="summary">{{ post.Summary }}</b>
-			<img v-bind:src="post.Path"></img>
+			<a v-bind:href="post.Path" data-lity><img v-bind:src="post.Path"></img></a>
 		</div>
 		<div v-else>
-			<img v-bind:src="post.Path"></img>
+			<a v-bind:href="post.Path" data-lity><img v-bind:src="post.Path"></img></a>
 		</div>
 	</template>
 
+	<script type="text/javascript" src="/static/js/jquery-3.3.1.min.js"></script>
 	<script type="text/javascript" src="/static/js/main.js"></script>
+	<script type="text/javascript" src="/static/js/lity.min.js"></script>
 </body>
 </html>

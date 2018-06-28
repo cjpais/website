@@ -6,11 +6,11 @@
 	<link href="https://fonts.googleapis.com/css?family=Merriweather+Sans" rel="stylesheet">
 	<link rel="stylesheet" href="/static/css/sakura.css">
 	<link rel="stylesheet" href="/static/css/main.css">
-	<link rel="stylesheet" href="/static/css/lity.min.css">
+	<link rel="stylesheet" href="/static/css/wa-mediabox.min.css">
 	<script type="text/javascript" src="/static/js/luxon.min.js"></script>
 	<script type="text/javascript" src="/static/js/vue.min.js"></script>
 	<script type="text/javascript" src="/static/js/axios.min.js"></script>
-	<script type="text/javascript" src="/static/js/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="/static/js/wa-mediabox.min.js"></script>
 </head>
 <body>
 	<a href="/">
@@ -135,16 +135,14 @@
 		<div v-if='post.Summary != ""' class="grid col-1">
 			<b class="summary">{{ post.Summary }}</b>
 			<div>
-			<a v-bind:href="post.Path" data-lity><img v-bind:src="post.Path"></img></a>
+			<a v-bind:href="post.Path" data-mediabox><img v-bind:src="post.Path"></img></a>
 			</div>
 		</div>
 		<div v-else>
-			<a v-bind:href="post.Path" data-lity><img v-bind:src="post.Path"></img></a>
+			<a v-bind:href="post.Path" data-mediabox><img v-bind:src="post.Path"></img></a>
 		</div>
 	</template>
 
-
 	<script type="text/javascript" src="/static/js/main.js"></script>
-	<script type="text/javascript" src="/static/js/lity.min.js"></script>
 	</body>
 </html>

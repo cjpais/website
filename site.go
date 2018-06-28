@@ -77,7 +77,7 @@ func loadDay(path string) (*Day, error) {
 			if err != nil {
 				return nil, err
 			}
-			moments = append(moments, moment)
+			moments = append([]map[string]Moment{moment}, moments...)
 		}
 	}
 	d, _ := strconv.Atoi(filepath.Base(path))
@@ -236,6 +236,7 @@ func newMoment(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseMultipartForm(0)
 	// TODO sanitize
+	log.Println(r.Form)
 	switch r.Form["type"][0] {
 		case POST:
 			post := Post{}

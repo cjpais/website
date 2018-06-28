@@ -1,19 +1,3 @@
-window.onclick = function(event) {
-	console.log("hit")
-	document.getElementById("dropdown").setAttribute("hidden");
-}
-
-// Define a new component called button-counter
-Vue.component('post', {
-	props: ['post'],
-	template: "#post-component"
-})
-
-Vue.component('photo', {
-	props: ['post'],
-	template: "#photo-component"
-})
-
 var app = new Vue({
 	el: '#app',
 	data () {
@@ -21,7 +5,13 @@ var app = new Vue({
 			data: null,
 			auth: false,
 			latestIsToday: false,
+			newbool: false,
+			newtime: null,
+			newtype: null,
+			tz: null,
 			date: null,
+			inc: 0,
+			dropdown: false,
 		}
 	},
 	mounted () {
@@ -64,9 +54,77 @@ var app = new Vue({
 			})
 			return list;
 		},
-		newPicker: function () {
-			document.getElementById("dropdown").removeAttribute("hidden")
-			console.log(this)
+		dropclick: function (e) {
+			if (e.target.tagName == "A") {
+				// set child invis
+				e.target.parentElement.parentElement.querySelector("#dropdown").classList.add("hidden")
+			} else {
+				// set child vis
+				e.target.parentElement.querySelector("#dropdown").classList.remove("hidden")
+				e.preventDefault();
+			}
+			if (e.target.href == "") {
+				console.log("no href")
+				e.preventDefault();
+			}
+		},
+		addMoment: function (e, type) {
+			var form = e.target.parentElement.parentElement.parentElement.parentElement
+			form.querySelector("#newarea").classList.remove("hidden")
+			var date = luxon.DateTime.local()
+			this.dropdown = false;
+			this.newtype = type;
+			this.newbool = true;
+			this.newtime = date.toLocaleString(luxon.DateTime.TIME_SIMPLE);
+			this.tz = date.zoneName;
+			// remove the pre class 
+			var pre = document.getElementsByClassName("pre");
+			if (pre.length > 0) {
+				pre[0].classList.remove("pre")
+			}
+		},
+		submitMoment: function (e) {
+			form = e.target.parentElement.parentElement;
+			form.addEventListener("submit", function(e) {
+				e.preventDefault();
+
+				var data = new FormData(form);
+				var req = new XMLHttpRequest();
+				req.open("POST", "/api/new", true);
+				req.onload = function(ev) {
+					if (req.status == 200) {
+						console.log("upload good");
+					} else {
+						console.log("upload failed");
+					}
+				};
+
+				req.send(data);
+			}, false);
+			// TODO refresh the page with updated data or something
+			// TODO that is hide and clear everything and then add new vue element to array
 		}
 	}
 })
+
+Vue.component('post', {
+	props: {
+		post: Object,
+		n: Boolean
+	},
+	template: "#post-component",
+	methods: {
+		autosize: function (e){
+			var el = e.target;
+			setTimeout(function(){
+				el.style.cssText = 'height:' + el.scrollHeight + 'px';
+			},0);
+		}
+	}
+})
+
+Vue.component('photo', {
+	props: ['post'],
+	template: "#photo-component"
+})
+

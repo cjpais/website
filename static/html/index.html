@@ -10,6 +10,7 @@
 	<script type="text/javascript" src="/static/js/luxon.min.js"></script>
 	<script type="text/javascript" src="/static/js/vue.min.js"></script>
 	<script type="text/javascript" src="/static/js/axios.min.js"></script>
+	<script type="text/javascript" src="/static/js/jquery-3.3.1.min.js"></script>
 </head>
 <body>
 	<a href="/">
@@ -20,36 +21,60 @@
 	</a>
 	<hr>
 	<div id="app">
-		
 		<!-- TODO CLEAN THIS UP -->
 		<!-- THIS IS IF AUTHENTICATED -->
 		<template v-if="auth">
-			authenticated
 			<template v-if="!latestIsToday">
-				<div class="date-grid pre">
-					<h3>{{ date }}</h3>
-					<button v-on:click="newPicker">+</button>
-					<div id="dropdown" class="dropdown-content" hidden>
-						<a href="#">Post</a>
-						<a href="#">Photo</a>
-					</div>
-				</div>
-				<!-- THIS IS ALL HIDDEN UNTIL AFTER + CLICK -->
-				<div class="posts posts-new">
-					<div class="time time-new"><b>11:32AM:</b></div>
-				</div>
-			</template>
-			<template v-else v-for="(year, yidx) in data">
-			<template v-for="(month, midx) in year.Months">
-				<template v-for="(day, didx) in month.Days">
-					<div class="date-grid">
-						<h3>{{ year.Int | dateformat(month.Int , day.Int ) }}</h3>
-						<button v-on:click="newPicker">+</button>
-						<div id="dropdown" class="dropdown-content" hidden>
-							<a href="#">Post</a>
-							<a href="#">Photo</a>
+				<!-- TODO LOOK AT NEW PAGE FORM -->
+				<form name="newmoment">
+					<div class="date-grid pre">
+						<input name="tz" class="hidden" v-bind:value="tz"></input>
+						<input name="format" class="hidden" value="cjcustom"></input>
+						<h3 v-if="newbool"><textarea name="date" class="h3">{{ date }}</textarea></h3>
+						<h3 v-else>{{ date }}</h3>
+						<div v-on:click="dropclick">
+							<button>+</button>
+							<div id="dropdown" class="dropdown hidden">
+								<a v-on:click="addMoment($event, 'website.post')">Post</a>
+								<a v-on:click="addMoment($event, 'website.photo')">Photo</a>
+								<a href="/new">New</a>
+							</div>
 						</div>
 					</div>
+					<div id="newarea" class="posts hidden">
+						<div class="time"><b><textarea name="time" class="bold">{{ newtime }}:</textarea></b></div>
+						<post v-if="newtype == 'website.post'" v-bind:n="true"></post>
+						<photo v-if="newtype == 'website.photo'"></photo>
+						<button>cancel</button>
+						<button v-on:click="submitMoment">submit</button>
+					</div>
+				</form>
+			</template>
+			<template v-for="(year, yidx) in data">
+			<template v-for="(month, midx) in year.Months">
+				<template v-for="(day, didx) in month.Days">
+					<form name="newmoment">
+						<div class="date-grid">
+							<input name="tz" class="hidden" v-bind:value="tz"></input>
+							<input name="format" class="hidden" value="cjcustom"></input>
+							<h3><textarea name="date" class="h3">{{ year.Int | dateformat(month.Int , day.Int ) }}</textarea></h3>
+							<div v-on:mouseover="" v-on:click="dropclick" v-on:mouseleave="">
+								<button>+</button>
+								<div id="dropdown" class="dropdown hidden">
+									<a v-on:click="addMoment($event, 'website.post')">Post</a>
+									<a v-on:click="addMoment($event, 'website.photo')">Photo</a>
+									<a href="/new">New</a>
+								</div>
+							</div>
+						</div>
+						<div id="newarea" class="posts hidden">
+							<div class="time"><b><textarea name="time" class="bold">{{ newtime }}:</textarea></b></div>
+							<post v-if="newtype == 'website.post'" v-bind:n="true"></post>
+							<photo v-if="newtype == 'website.photo'"></photo>
+							<button>cancel</button>
+							<button v-on:click="submitMoment">submit</button>
+						</div>
+					</form>
 					<template v-for="(moment, midx) in day.Moments">
 						<div v-for="(post, key) in moment" class="posts">
 							<div class="time"><b>{{ post.Time | timeformat }}:</b></div>
@@ -80,10 +105,26 @@
 		</template>
 	</div>
 
+
+	<template id="new-moment">
+
+	</template>
+
 	<template id="post-component">
-		<div v-if='post.Summary != ""' style="display: grid; grid-template-columns: auto;">
+		<div v-if="n">
+			<div>
+				<textarea class="summary" name="summary" placeholder="Title/Summary" rows="1" v-on:keyup="autosize"></textarea>
+				<textarea name="content" placeholder="Post...." rows="1" v-on:keyup="autosize" required></textarea>
+				<input hidden name="type" value="website.post"></input>
+			</div>
+		</div>
+		<div v-else-if='post.Summary != ""' class="grid col-1">
 			<b class="summary">{{ post.Summary }}</b>
-			<div style="grid-row: 2">{{ post.Content }}</div>
+			<div>{{ post.Content }}</div>
+		</div>
+		<div v-if='post.Summary != ""' class="grid col-1">
+			<b class="summary">{{ post.Summary }}</b>
+			<div>{{ post.Content }}</div>
 		</div>
 		<div v-else>
 			<div>{{ post.Content }}</div>
@@ -91,17 +132,19 @@
         </template>
 
 	<template id="photo-component">
-		<div v-if='post.Summary != ""'>
+		<div v-if='post.Summary != ""' class="grid col-1">
 			<b class="summary">{{ post.Summary }}</b>
+			<div>
 			<a v-bind:href="post.Path" data-lity><img v-bind:src="post.Path"></img></a>
+			</div>
 		</div>
 		<div v-else>
 			<a v-bind:href="post.Path" data-lity><img v-bind:src="post.Path"></img></a>
 		</div>
 	</template>
 
-	<script type="text/javascript" src="/static/js/jquery-3.3.1.min.js"></script>
+
 	<script type="text/javascript" src="/static/js/main.js"></script>
 	<script type="text/javascript" src="/static/js/lity.min.js"></script>
-</body>
+	</body>
 </html>

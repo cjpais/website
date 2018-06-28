@@ -24,9 +24,16 @@ const (
 	PHOTO = "website.photo"
 )
 
-func getTime(d, t string) (time.Time, error) {
-	datetime := d + "T" + t + ":00Z"
-	return time.Parse(time.RFC3339, datetime)
+func getTime(d, t, format string) (time.Time, error) {
+	if format == "rfc3339" {
+		datetime := d + "T" + t + ":00Z"
+		return time.Parse(time.RFC3339, datetime)
+	} else if format == "cjcustom" {
+		datetime := d + ", " + t
+		fmt.Println(datetime)
+		return time.Parse("Monday, January 02, 2006, 3:04 PM:", datetime)
+	}
+	return time.Time{}, fmt.Errorf("time format incorrect")
 }
 
 type Post struct {
@@ -54,7 +61,8 @@ func (p *Post) saveReq(r *http.Request) error {
 	log.Println("saving post")
 	date := r.Form["date"][0]
 	time := r.Form["time"][0]
-	p.Time, _ = getTime(date, time)
+	format := r.Form["format"][0]
+	p.Time, _ = getTime(date, time, format)
 	p.Timezone = r.Form["tz"][0]
 	p.Summary = r.Form["summary"][0]
 	p.Content = r.Form["content"][0]
@@ -92,7 +100,8 @@ func (p *Photo) saveReq(r *http.Request) error {
 	log.Println("saving photo")
 	date := r.Form["date"][0]
 	time := r.Form["time"][0]
-	p.Time, _ = getTime(date, time)
+	format := r.Form["format"][0]
+	p.Time, _ = getTime(date, time, format)
 	p.Timezone = r.Form["tz"][0]
 	p.Summary = r.Form["summary"][0]
 

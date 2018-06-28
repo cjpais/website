@@ -3,6 +3,14 @@
   zoom: 1.0;
 }
 
+.grid {
+	display: grid;
+}
+
+.col-1 {
+	grid-template-columns: auto;
+}
+
 .header {
 	display: grid;
 	grid-gap: 1em;
@@ -46,6 +54,7 @@
 	font-size: 1.35em;
 	position: relative;
 	top: -6px;
+	font-weight: bold;
 }
 
 .time {
@@ -54,20 +63,6 @@
 
 .time-center {
 	align-self: center;
-}
-
-#dropzone {
-	border: 2px dashed #011627;
-	border-radius: 20px;
-	width: 30em;
-	height: 15em;
-}
-
-.drop-message {
-	text-align: center;
-	vertical-align: middle;
-	line-height: 10em;
-	font-size: 1.35em;
 }
 
 .pre {
@@ -79,47 +74,75 @@
 	grid-template-columns: 10fr 0fr;
 }
 
-.date-grid > button {
+.date-grid > div {
+	position: relative;
+}
+
+.date-grid > div > button {
 	width: 2em;
 	height: 2em;
-	align-self: center;
-	justify-self: left;
+	margin-top: 1em;
 	font-size: 1.25em;
 }
 
-/* Dropdown button on hover & focus */
-.dropbtn:hover, .dropbtn:focus {
-    background-color: #2980B9;
-}
-
-/* The container <div> - needed to position the dropdown content */
 .dropdown {
-    position: relative;
-    display: inline-block;
+	position: absolute;
+	background-color: #f1f1f1;
+	min-width: 2em;
+	top: 4em;
+	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+	z-index: 1;
+	left: 1px;
 }
 
-/* Dropdown Content (Hidden by Default) */
-.dropdown-content {
-    left: 70%;
-    right: 0%;
-    background-color: #f1f1f1;
-    min-width: 5em;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
-    grid-column: 2;
-}
-
-/* Links inside the dropdown */
-.dropdown-content a {
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-}
-
-/* Change color of dropdown links on hover */
-.dropdown-content a:hover {background-color: #ddd}
-
-.show {
+.dropdown > a {
+	color: black;
+	padding: 12px 16px;
+	text-decoration: none;
 	display: block;
+}
+
+.dropdown a:hover {background-color: #ddd;}
+
+button {
+	background-color: #011627;
+	border: none;
+	border-radius: 20em;
+}
+
+textarea {
+	display: block;
+	font-size: 1.8rem;
+	line-height: 1.618;
+	color: #4a4a4a;
+	font-family: 'Merriweather', serif;
+	resize: none;
+	overflow: hidden;
+	border: none;
+	background-color: #f9f9f9;
+	padding: 0;
+	margin: 0;
+}
+
+.h3 {
+	font-size: 1em;
+	line-height: 1.1;
+	font-family: 'Merriweather Sans', sans-serif;
+	font-weight: 700;
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+	-ms-word-break: break-all;
+	word-break: break-word;
+	-ms-hyphens: auto;
+	-moz-hyphens: auto;
+	-webkit-hyphens: auto;
+	hyphens: auto;
+}
+
+.hidden {
+	display: none;
+}
+
+.bold {
+	font-weight: bold;
 }

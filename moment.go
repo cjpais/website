@@ -12,6 +12,8 @@ import (
 	"io/ioutil"
 	"image/jpeg"
 	"encoding/json"
+
+	"github.com/nfnt/resize"
 )
 
 type Moment interface {
@@ -124,22 +126,26 @@ func (p *Photo) saveReq(r *http.Request) error {
 	p.Fullpath = getPath(p.Time) + "/fullsize_" + header.Filename
 	p.Path = getPath(p.Time) + "/" + header.Filename
 
+	// write out the fullsize image
 	err = ioutil.WriteFile(p.Fullpath, filedata, 0600)
 	if err != nil {
 		return err
 	}
 
-	// decode the image
+	// resize the image 
 	image, err := jpeg.Decode(bytes.NewReader(filedata))
 	if err != nil {
 		return err
 	}
-	cf, err := os.OpenFile(p.Path, os.O_WRONLY|os.O_CREATE, 0600)
+
+	m := resize.Resize(620, 0, image, resize.Lanczos3)
+
+	ri, err := os.Create(p.Path)
 	if err != nil {
 		return err
 	}
-	defer cf.Close()
-	err = jpeg.Encode(cf, image, &jpeg.Options{50})
+	defer ri.Close()
+	err = jpeg.Encode(ri, m, nil)
 
 	return p.save()
 }

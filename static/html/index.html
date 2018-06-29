@@ -103,13 +103,15 @@
 		<template v-else v-for="(year, yidx) in data">
 			<template v-for="(month, midx) in year.Months">
 				<template v-for="(day, didx) in month.Days">
+					<template v-if="day.Moments">
 					<h3>{{ year.Int | dateformat(month.Int , day.Int ) }}</h3>
-					<template v-for="(moment, midx) in day.Moments">
-						<div v-for="(post, key) in moment" class="posts">
-							<div class="time"><b>{{ post.Time | timeformat }}:</b></div>
-							<post v-if="key == 'website.post'" v-bind:post="post"></post>
-							<photo v-else-if="key == 'website.photo'" v-bind:post="post"></photo>
-						</div>
+						<template v-for="(moment, midx) in day.Moments">
+							<div v-for="(post, key) in moment" class="posts">
+								<div class="time"><b>{{ post.Time | timeformat }}:</b></div>
+								<post v-if="key == 'website.post'" v-bind:post="post"></post>
+								<photo v-else-if="key == 'website.photo'" v-bind:post="post"></photo>
+							</div>
+						</template>
 					</template>
 				</template>
 			</template>
@@ -154,12 +156,12 @@
 		</div>
 		<div v-else-if='post.Summary != ""' class="grid col-1">
 			<b class="summary">{{ post.Summary }}</b>
-			<a v-bind:href="post.Fullpath" data-mediabox>
+			<a v-bind:href="post.Fullpath" v-on:click.stop="" data-mediabox>
 				<img class="lazyload" v-bind:data-src="post.Path"></img>
 			</a>
 		</div>
 		<div v-else>
-			<a v-bind:href="post.Fullpath" data-mediabox>
+			<a v-bind:href="post.Fullpath" v-on:click.stop="" data-mediabox>
 				<img class="lazyload" v-bind:data-src="post.Path"></img>
 			</a>
 		</div>

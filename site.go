@@ -252,6 +252,7 @@ func removeMoment(w http.ResponseWriter, r *http.Request) {
 	}
 	path := getPath(time)
 	os.RemoveAll(path)
+
 	daysHandler(w, r)
 }
 
@@ -281,7 +282,6 @@ func main() {
 		log.Printf("removing timeline")
 		os.RemoveAll("timeline/")
 		os.MkdirAll("timeline/", os.ModePerm)
-		//writeTestPosts()
 	}
 
 	// serve filesystem parts

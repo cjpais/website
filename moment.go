@@ -138,7 +138,7 @@ func (p *Photo) saveReq(r *http.Request) error {
 		return err
 	}
 
-	m := resize.Resize(620, 0, image, resize.Lanczos3)
+	m := resize.Resize(1000, 0, image, resize.Lanczos3)
 
 	ri, err := os.Create(p.Path)
 	if err != nil {

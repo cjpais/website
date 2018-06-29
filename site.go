@@ -258,7 +258,6 @@ func auth(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	t := time.Now();
 	logfile, err := os.OpenFile("logs/website.log", os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		log.Println("error openinng file", err)
@@ -269,6 +268,7 @@ func main() {
 	log.SetOutput(mw)
 	// if any command line argument write new days
 	if len(os.Args) > 1 {
+		log.Printf("removing timeline")
 		os.RemoveAll("timeline/")
 		os.MkdirAll("timeline/", os.ModePerm)
 		//writeTestPosts()

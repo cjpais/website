@@ -2,13 +2,15 @@ package main
 
 import (
 	"os"
-	"io"
 	"log"
 	"fmt"
 	"time"
+	"bytes"
+	"strings"
 
 	"net/http"
 	"io/ioutil"
+	"image/jpeg"
 	"encoding/json"
 )
 
@@ -30,8 +32,7 @@ func getTime(d, t, format string) (time.Time, error) {
 		return time.Parse(time.RFC3339, datetime)
 	} else if format == "cjcustom" {
 		datetime := d + ", " + t
-		fmt.Println(datetime)
-		return time.Parse("Monday, January 02, 2006, 3:04 PM:", datetime)
+		return time.Parse("Monday, January 02, 2006, 3:04:05 PM:", datetime)
 	}
 	return time.Time{}, fmt.Errorf("time format incorrect")
 }
@@ -59,8 +60,8 @@ func (p *Post) save() error {
 
 func (p *Post) saveReq(r *http.Request) error {
 	log.Println("saving post")
-	date := r.Form["date"][0]
-	time := r.Form["time"][0]
+	date := strings.TrimSpace(r.Form["date"][0])
+	time := strings.TrimSpace(r.Form["time"][0])
 	format := r.Form["format"][0]
 	p.Time, _ = getTime(date, time, format)
 	p.Timezone = r.Form["tz"][0]
@@ -80,6 +81,7 @@ type Photo struct {
 	Timezone string
 	Summary string
 	Path string
+	Fullpath string
 }
 
 func (p *Photo) time() time.Time {
@@ -98,23 +100,47 @@ func (p *Photo) save() error {
 
 func (p *Photo) saveReq(r *http.Request) error {
 	log.Println("saving photo")
-	date := r.Form["date"][0]
-	time := r.Form["time"][0]
+	date := strings.TrimSpace(r.Form["date"][0])
+	time := strings.TrimSpace(r.Form["time"][0])
 	format := r.Form["format"][0]
 	p.Time, _ = getTime(date, time, format)
 	p.Timezone = r.Form["tz"][0]
 	p.Summary = r.Form["summary"][0]
 
 	// handle file
-	file, header, err := r.FormFile("image")
-	p.Path = getPath(p.Time) + "/" + header.Filename
-	f, err := os.OpenFile(p.Path, os.O_WRONLY|os.O_CREATE, 0755)
+	// TODO multiple photo uploads
+	//files := r.MultipartForm.File["images"]
+
+	file, header, err := r.FormFile("images")
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	defer f.Close()
-	io.Copy(f, file)
+	filedata, err := ioutil.ReadAll(file)
+	if err != nil {
+		return err
+	}
+
+	p.Fullpath = getPath(p.Time) + "/fullsize_" + header.Filename
+	p.Path = getPath(p.Time) + "/" + header.Filename
+
+	err = ioutil.WriteFile(p.Fullpath, filedata, 0600)
+	if err != nil {
+		return err
+	}
+
+	// decode the image
+	image, err := jpeg.Decode(bytes.NewReader(filedata))
+	if err != nil {
+		return err
+	}
+	cf, err := os.OpenFile(p.Path, os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		return err
+	}
+	defer cf.Close()
+	err = jpeg.Encode(cf, image, &jpeg.Options{50})
+
 	return p.save()
 }
 

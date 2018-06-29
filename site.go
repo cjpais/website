@@ -1,10 +1,11 @@
 package main
 
 import (
+	"io"
 	"os"
 	"log"
 	//"fmt"
-	//"time"
+	"time"
 	"sort"
 	"bytes"
 	"strconv"
@@ -21,21 +22,21 @@ import (
 
 
 type Year struct {
-	String string
+	//String string
 	Int int
 	Months []*Month
 }
 
 type Month struct {
 	//Year *Year
-	String string
+	//String string
 	Int int
 	Days []*Day
 }
 
 type Day struct {
 	//Month *Month
-	String string
+	//String string
 	Int int
 	Moments []map[string]Moment
 }
@@ -159,28 +160,6 @@ func daysHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(years)
 }
 
-/*
-func writeTestPosts() {
-	log.Println("Writing New Set of Days")
-	// dirty constants
-	summary := []string{"", "lorem ipsum"}
-	content := []string{"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec mattis erat nec vehicula suscipit. Aenean posuere ante justo, a pretium risus aliquet nec. Nullam accumsan augue odio, vitae suscipit ligula lobortis nec. Curabitur semper at mauris id tempor. In vitae ipsum quis libero commodo facilisis. In ac faucibus ipsum. Sed fringilla enim non gravida imperdiet. Curabitur vitae est blandit, viverra sapien vel, rutrum nisl.", "hi", "test", "noooooo", "CJ"}
-	numPosts := 1000
-
-	min := time.Date(2014, 5, 30, 0, 0, 0, 0, time.UTC).Unix()
-	max := time.Now().Unix()
-	dt := max - min
-
-	for i := 0; i < numPosts; i++ {
-		t := time.Unix(rand.Int63n(dt) + min, 0)
-		randc := rand.Intn(len(content))
-		rands := rand.Intn(len(summary))
-		post := createMoment(t, summary[rands], content[randc])
-		post.save()
-	}
-}
-*/
-
 func newPage(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "cjpais.com")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
@@ -228,6 +207,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 }
 
 func newMoment(w http.ResponseWriter, r *http.Request) {
+	//var data []byte;
 	session, _ := store.Get(r, "cjpais.com")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -236,7 +216,6 @@ func newMoment(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseMultipartForm(0)
 	// TODO sanitize
-	log.Println(r.Form)
 	switch r.Form["type"][0] {
 		case POST:
 			post := Post{}
@@ -245,6 +224,28 @@ func newMoment(w http.ResponseWriter, r *http.Request) {
 			photo := Photo{}
 			photo.saveReq(r)
 	}
+	daysHandler(w, r)
+}
+
+func removeMoment(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "cjpais.com")
+	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	r.ParseMultipartForm(0)
+	// assume all times have independent data (not strictly the case)
+	//momentType := r.Form["type"][0]
+	t := r.Form["time"][0]
+	time, err := time.Parse(time.RFC3339, t)
+	if err != nil {
+		log.Println("error converting time string", err)
+		return
+	}
+	path := getPath(time)
+	os.RemoveAll(path)
+	daysHandler(w, r)
 }
 
 func auth(w http.ResponseWriter, r *http.Request) {
@@ -257,6 +258,15 @@ func auth(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	t := time.Now();
+	logfile, err := os.OpenFile("logs/website.log", os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		log.Println("error openinng file", err)
+		os.Exit(1)
+	}
+	defer logfile.Close()
+	mw := io.MultiWriter(os.Stdout, logfile)
+	log.SetOutput(mw)
 	// if any command line argument write new days
 	if len(os.Args) > 1 {
 		os.RemoveAll("timeline/")
@@ -281,6 +291,7 @@ func main() {
 	http.HandleFunc("/api/login", login)
 	http.HandleFunc("/api/auth", auth)
 	http.HandleFunc("/api/new", newMoment)
+	http.HandleFunc("/api/remove", removeMoment)
 
 	log.Println("Serving cjpais.com...")
 	log.Fatal(http.ListenAndServe(":8080", nil))

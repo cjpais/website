@@ -30,6 +30,15 @@
 	align-self: center;
 }
 
+.summary {
+	font-size: 1.35em;
+	grid-row: 1 / auto;
+	font-size: 1.35em;
+	position: relative;
+	top: -6px;
+	font-weight: bold;
+}
+
 .posts {
 	display: grid;
 	grid-gap: 1em;
@@ -48,14 +57,6 @@
 	margin-bottom: .1em;
 }
 
-.summary {
-	font-size: 1.35em;
-	grid-row: 1 / auto;
-	font-size: 1.35em;
-	position: relative;
-	top: -6px;
-	font-weight: bold;
-}
 
 .time {
 	font-family: 'Merriweather Sans', sans-serif;
@@ -92,7 +93,7 @@
 	top: 4em;
 	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 	z-index: 1;
-	left: 1px;
+	right: 0;
 }
 
 .dropdown > a {
@@ -119,9 +120,35 @@ textarea {
 	resize: none;
 	overflow: hidden;
 	border: none;
+	outline: none;
 	background-color: #f9f9f9;
 	padding: 0;
 	margin: 0;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+    outline: none;
+}
+
+
+.change {
+	position: relative;
+	top: -1.8em;
+	left: -2em;
+}
+
+@media (max-width: 684px) {
+	.change {
+		top: 0;
+		left: 0;
+		padding-top: .5em;
+	}
+	.posts {
+		grid-template-columns: 3fr 10fr;
+	}
 }
 
 .h3 {
@@ -145,4 +172,45 @@ textarea {
 
 .bold {
 	font-weight: bold;
+}
+
+.file-area {
+    width: 100%;
+    position: relative;
+    font-size: 18px;
+}
+.file-area input[type=file] {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+.file-area .file-dummy {
+    width: 100%;
+	padding-top: 2em;
+	padding-bottom: 3em;
+    border: 2px dashed #ccc;
+    background-color: #fff;
+    text-align: center;
+    transition: background 0.3s ease-in-out;
+}
+.file-area .file-dummy .success {
+    display: none;
+}
+.file-area:hover .file-dummy {
+    border: 2px dashed #1abc9c;
+}
+.file-area input[type=file]:valid + .file-dummy {
+    border-color: #1abc9c;
+}
+.file-area input[type=file]:valid + .file-dummy .success {
+    display: inline-block;
+}
+.file-area input[type=file]:valid + .file-dummy .default {
+    display: none;
 }

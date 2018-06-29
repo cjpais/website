@@ -7,10 +7,6 @@
 	<link rel="stylesheet" href="/static/css/sakura.css">
 	<link rel="stylesheet" href="/static/css/main.css">
 	<link rel="stylesheet" href="/static/css/wa-mediabox.min.css">
-	<script type="text/javascript" src="/static/js/luxon.min.js"></script>
-	<script type="text/javascript" src="/static/js/vue.min.js"></script>
-	<script type="text/javascript" src="/static/js/axios.min.js"></script>
-	<script type="text/javascript" src="/static/js/wa-mediabox.min.js"></script>
 </head>
 <body>
 	<a href="/">
@@ -30,8 +26,13 @@
 					<div class="date-grid pre">
 						<input name="tz" class="hidden" v-bind:value="tz"></input>
 						<input name="format" class="hidden" value="cjcustom"></input>
-						<h3 v-if="newbool"><textarea name="date" class="h3">{{ date }}</textarea></h3>
-						<h3 v-else>{{ date }}</h3>
+						<h3 v-if="newbool">
+								<textarea 
+									name="date" 
+									class="h3">{{ datestring }}
+								</textarea>
+						</h3>
+						<h3 v-else>{{ datestring }}</h3>
 						<div v-on:click="dropclick">
 							<button>+</button>
 							<div id="dropdown" class="dropdown hidden">
@@ -44,8 +45,8 @@
 					<div id="newarea" class="posts hidden">
 						<div class="time"><b><textarea name="time" class="bold">{{ newtime }}:</textarea></b></div>
 						<post v-if="newtype == 'website.post'" v-bind:n="true"></post>
-						<photo v-if="newtype == 'website.photo'"></photo>
-						<button>cancel</button>
+						<photo v-if="newtype == 'website.photo'" v-bind:n="true"></photo>
+						<button v-on:click="cancelAdd">cancel</button>
 						<button v-on:click="submitMoment">submit</button>
 					</div>
 				</form>
@@ -57,7 +58,8 @@
 						<div class="date-grid">
 							<input name="tz" class="hidden" v-bind:value="tz"></input>
 							<input name="format" class="hidden" value="cjcustom"></input>
-							<h3><textarea name="date" class="h3">{{ year.Int | dateformat(month.Int , day.Int ) }}</textarea></h3>
+							<h3 v-if="newbool"><textarea name="date" class="h3">{{ year.Int | dateformat(month.Int , day.Int ) }}</textarea></h3>
+							<h3 v-else>{{ year.Int | dateformat(month.Int , day.Int ) }}</h3>
 							<div v-on:mouseover="" v-on:click="dropclick" v-on:mouseleave="">
 								<button>+</button>
 								<div id="dropdown" class="dropdown hidden">
@@ -70,19 +72,28 @@
 						<div id="newarea" class="posts hidden">
 							<div class="time"><b><textarea name="time" class="bold">{{ newtime }}:</textarea></b></div>
 							<post v-if="newtype == 'website.post'" v-bind:n="true"></post>
-							<photo v-if="newtype == 'website.photo'"></photo>
-							<button>cancel</button>
+							<photo v-if="newtype == 'website.photo'" v-bind:n="true"></photo>
+							<button v-on:click="cancelAdd">cancel</button>
 							<button v-on:click="submitMoment">submit</button>
 						</div>
 					</form>
-					<template v-for="(moment, midx) in day.Moments">
-						<div v-for="(post, key) in moment" class="posts">
-							<div class="time"><b>{{ post.Time | timeformat }}:</b></div>
-							<post v-if="key == 'website.post'" v-bind:post="post"></post>
-							<photo v-else-if="key == 'website.photo'" v-bind:post="post"></photo>
+					<form name="changeMoment">
+						<template v-for="(moment, midx) in day.Moments">
+							<div v-for="(post, key) in moment" class="posts">
+								<div class="time">
+									<b>{{ post.Time | timeformat }}:</b>
+									<div class="change">
+										<button v-on:click="removeMoment">x</button>
+										<!-- <button>edit</button> -->
+										<input class="hidden" name="time" v-bind:value="post.Time"></input>
+										<input class="hidden" name="type" v-bind:value="key"></input>
+									</div>
 								</div>
+								<post v-if="key == 'website.post'" v-bind:post="post"></post>
+								<photo v-else-if="key == 'website.photo'" v-bind:post="post"></photo>
 							</div>
 						</template>
+					</form>
 					</template>
 				</template>
 			</template>
@@ -112,11 +123,9 @@
 
 	<template id="post-component">
 		<div v-if="n">
-			<div>
-				<textarea class="summary" name="summary" placeholder="Title/Summary" rows="1" v-on:keyup="autosize"></textarea>
-				<textarea name="content" placeholder="Post...." rows="1" v-on:keyup="autosize" required></textarea>
-				<input hidden name="type" value="website.post"></input>
-			</div>
+			<textarea class="summary" name="summary" placeholder="Title/Summary" rows="1" v-on:keyup="autosize"></textarea>
+			<textarea name="content" placeholder="Post...." rows="1" v-on:keyup="autosize" required></textarea>
+			<input name="type" value="website.post" class="hidden"></input>
 		</div>
 		<div v-else-if='post.Summary != ""' class="grid col-1">
 			<b class="summary">{{ post.Summary }}</b>
@@ -132,17 +141,35 @@
         </template>
 
 	<template id="photo-component">
-		<div v-if='post.Summary != ""' class="grid col-1">
-			<b class="summary">{{ post.Summary }}</b>
-			<div>
-			<a v-bind:href="post.Path" data-mediabox><img v-bind:src="post.Path"></img></a>
+		<div v-if="n">
+			<textarea class="summary" name="summary" placeholder="Title/Summary" rows="1" v-on:keyup="autosize"></textarea>
+			<div class="file-area">
+				<input type="file" name="images" id="images" required="required" multiple/>
+				<div class="file-dummy">
+					<div class="success">Great, your photos are set!</div>
+					<div class="default">Add photos</div>
+				</div>
 			</div>
+			<input name="type" value="website.photo" class="hidden"></input>
+		</div>
+		<div v-else-if='post.Summary != ""' class="grid col-1">
+			<b class="summary">{{ post.Summary }}</b>
+			<a v-bind:href="post.Fullpath" data-mediabox>
+				<img class="lazyload" v-bind:data-src="post.Path"></img>
+			</a>
 		</div>
 		<div v-else>
-			<a v-bind:href="post.Path" data-mediabox><img v-bind:src="post.Path"></img></a>
+			<a v-bind:href="post.Fullpath" data-mediabox>
+				<img class="lazyload" v-bind:data-src="post.Path"></img>
+			</a>
 		</div>
 	</template>
 
+	<script type="text/javascript" src="/static/js/luxon.min.js"></script>
+	<script type="text/javascript" src="/static/js/vue.min.js"></script>
+	<script type="text/javascript" src="/static/js/axios.min.js"></script>
+	<script type="text/javascript" src="/static/js/wa-mediabox.min.js"></script>
+	<script type="text/javascript" src="/static/js/lazysizes.min.js"></script>
 	<script type="text/javascript" src="/static/js/main.js"></script>
 	</body>
 </html>

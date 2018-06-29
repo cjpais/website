@@ -9,7 +9,7 @@ var app = new Vue({
 			newtime: null,
 			newtype: null,
 			tz: null,
-			date: null,
+			datestring: null,
 			inc: 0,
 			dropdown: false,
 		}
@@ -20,16 +20,9 @@ var app = new Vue({
 		.then(response => {
 			d = luxon.DateTime.local();
 			if (response.data != null) {
-				this.data = this.createYears(response.data);
-				year = this.data[0].Int;
-				month = this.data[0].Months[0].Int;
-				day = this.data[0].Months[0].Days[0].Int;
-				if (d.year == year && d.month == month && d.day == day) {
-					console.log("latest is today")
-					this.latestIsToday = true;
-				}
+				this.createYears(response.data);
 			}
-			this.date = d.toLocaleString(luxon.DateTime.DATE_HUGE);
+			this.datestring = d.toLocaleString(luxon.DateTime.DATE_HUGE);
 		})
 		axios.get("/api/auth").then(response => this.auth = response.data)
 	},
@@ -48,11 +41,16 @@ var app = new Vue({
 	methods: {
 		createYears: function (response) {
 			var list = [];
-			console.log("create years")
 			Object.values(response).map((data) => {
 				list.push(data);
 			})
-			return list;
+			this.data = list;
+			year = this.data[0].Int;
+			month = this.data[0].Months[0].Int;
+			day = this.data[0].Months[0].Days[0].Int;
+			if (d.year == year && d.month == month && d.day == day) {
+				this.latestIsToday = true;
+			}
 		},
 		dropclick: function (e) {
 			if (e.target.tagName == "A") {
@@ -64,7 +62,6 @@ var app = new Vue({
 				e.preventDefault();
 			}
 			if (e.target.href == "") {
-				console.log("no href")
 				e.preventDefault();
 			}
 		},
@@ -75,7 +72,7 @@ var app = new Vue({
 			this.dropdown = false;
 			this.newtype = type;
 			this.newbool = true;
-			this.newtime = date.toLocaleString(luxon.DateTime.TIME_SIMPLE);
+			this.newtime = date.toLocaleString(luxon.DateTime.TIME_WITH_SECONDS);
 			this.tz = date.zoneName;
 			// remove the pre class 
 			var pre = document.getElementsByClassName("pre");
@@ -90,19 +87,53 @@ var app = new Vue({
 
 				var data = new FormData(form);
 				var req = new XMLHttpRequest();
+
 				req.open("POST", "/api/new", true);
 				req.onload = function(ev) {
 					if (req.status == 200) {
-						console.log("upload good");
+						//console.log("post good");
+					} else if (req.status == 201) {
+						resp = JSON.parse(req.response)
+						app.createYears(resp)
+						// TODO clean this up bad
+						// that is that we need to always be selecting by #
+						e.target.querySelector("#newarea").classList.add("hidden")
+						this.newbool = false;
 					} else {
-						console.log("upload failed");
+						//console.log("post failed");
 					}
 				};
 
 				req.send(data);
 			}, false);
-			// TODO refresh the page with updated data or something
-			// TODO that is hide and clear everything and then add new vue element to array
+		},
+		cancelAdd: function (e) {
+			console.log(e)
+			e.target.parentElement.classList.add("hidden")
+			this.newbool = false;
+			e.preventDefault();
+		},
+		removeMoment: function (e) {
+			var c = confirm("are you sure you want to delete this moment?")
+			if (c == true) {
+				form = e.target.parentElement.parentElement.parentElement.parentElement;
+				form.addEventListener("submit", function(e) {
+					e.preventDefault()
+					var data = new FormData(form)
+					var req = new XMLHttpRequest();
+					req.open("POST", "/api/remove", true);
+					req.onload = function(ev) {
+						if (req.status == 201) {
+							resp = JSON.parse(req.response)
+							app.createYears(resp)
+						}
+					};
+
+					req.send(data);
+				}, false)
+			} else {
+				e.preventDefault();
+			}
 		}
 	}
 })
@@ -124,7 +155,18 @@ Vue.component('post', {
 })
 
 Vue.component('photo', {
-	props: ['post'],
-	template: "#photo-component"
+	props: {
+		post: Object,
+		n: Boolean
+	},
+	template: "#photo-component",
+	methods: {
+		autosize: function (e){
+			var el = e.target;
+			setTimeout(function(){
+				el.style.cssText = 'height:' + el.scrollHeight + 'px';
+			},0);
+		}
+	}
 })
 

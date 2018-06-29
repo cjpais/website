@@ -6,6 +6,7 @@ import (
 	"log"
 	//"fmt"
 	"time"
+	"flag"
 	"sort"
 	"bytes"
 	"strconv"
@@ -13,13 +14,19 @@ import (
 	"net/http"
 	//"math/rand"
 	"io/ioutil"
+	"crypto/tls"
 	"encoding/json"
 	"path/filepath"
 
 	"golang.org/x/crypto/scrypt"
+	"golang.org/x/crypto/acme/autocert"
 	//"github.com/gorilla/sessions"
 )
 
+var (
+	clear = flag.Bool("clear", false, "Clears the timeline")
+	prod = flag.Bool("prod", false, "If in production or not")
+)
 
 type Year struct {
 	//String string
@@ -266,8 +273,11 @@ func main() {
 	defer logfile.Close()
 	mw := io.MultiWriter(os.Stdout, logfile)
 	log.SetOutput(mw)
+
+	flag.Parse()
+
 	// if any command line argument write new days
-	if len(os.Args) > 1 {
+	if *clear {
 		log.Printf("removing timeline")
 		os.RemoveAll("timeline/")
 		os.MkdirAll("timeline/", os.ModePerm)
@@ -293,6 +303,25 @@ func main() {
 	http.HandleFunc("/api/new", newMoment)
 	http.HandleFunc("/api/remove", removeMoment)
 
-	log.Println("Serving cjpais.com...")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	// set up server
+	if *prod {
+		certManager := autocert.Manager {
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: autocert.HostWhitelist("www.cjpais.com"), //Your domain here
+			Cache:      autocert.DirCache("certs"),                   //Folder for storing certificates
+		}
+
+		server := &http.Server {
+			Addr: ":443",
+			TLSConfig: &tls.Config {
+				ServerName: "www.cjpais.com",
+				GetCertificate: certManager.GetCertificate,
+			},
+		}
+
+		go http.ListenAndServe(":80", certManager.HTTPHandler(nil))
+		log.Fatal(server.ListenAndServeTLS("", ""))
+	} else {
+		log.Fatal(http.ListenAndServe(":8080", nil))
+	}
 }

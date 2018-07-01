@@ -14,12 +14,12 @@ import (
 	"net/http"
 	//"math/rand"
 	"io/ioutil"
-	"crypto/tls"
+	//"crypto/tls"
 	"encoding/json"
 	"path/filepath"
 
 	"golang.org/x/crypto/scrypt"
-	"golang.org/x/crypto/acme/autocert"
+	//"golang.org/x/crypto/acme/autocert"
 	//"github.com/gorilla/sessions"
 )
 
@@ -305,22 +305,31 @@ func main() {
 
 	// set up server
 	if *prod {
-		certManager := autocert.Manager {
-			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist("www.cjpais.com"), //Your domain here
-			Cache:      autocert.DirCache("certs"),                   //Folder for storing certificates
+		log.Println("production server launched")
+		/*
+		d := []string{"cjpais.com", "www.cjpais.com", "206.189.227.218"}
+		m := &autocert.Manager{
+		    Cache:      autocert.DirCache("certs"),
+		    Prompt:     autocert.AcceptTOS,
+		    HostPolicy: autocert.HostWhitelist(d...),
 		}
-
-		server := &http.Server {
-			Addr: ":443",
-			TLSConfig: &tls.Config {
-				ServerName: "www.cjpais.com",
-				GetCertificate: certManager.GetCertificate,
+		s := &http.Server{
+		    Addr:      ":https",
+		    TLSConfig: &tls.Config{
+			ServerName: "www.cjpais.com",
+			GetCertificate: m.GetCertificate,
 			},
 		}
+		*/
 
-		go http.ListenAndServe(":80", certManager.HTTPHandler(nil))
-		log.Fatal(server.ListenAndServeTLS("", ""))
+		//go http.ListenAndServe(":http", m.HTTPHandler(nil))
+		log.Println(http.ListenAndServeTLS(":https",
+						"/etc/letsencrypt/live/www.cjpais.com/fullchain.pem",
+						"/etc/letsencrypt/live/www.cjpais.com/privkey.pem",
+						nil))
+
+		//listener := autocert.NewListener("www.cjpais.com")
+		//log.Fatal(http.Serve(listener, nil))
 	} else {
 		log.Fatal(http.ListenAndServe(":8080", nil))
 	}

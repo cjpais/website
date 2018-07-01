@@ -48,7 +48,10 @@ var app = new Vue({
 			this.data = list;
 			year = this.data[0].Int;
 			month = this.data[0].Months[0].Int;
-			day = this.data[0].Months[0].Days[0].Int;
+			day = null;
+			if (this.data[0].Months[0].Days != null) {
+				day = this.data[0].Months[0].Days[0].Int;
+			}
 			if (d.year == year && d.month == month && d.day == day) {
 				this.latestIsToday = true;
 			}

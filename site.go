@@ -253,6 +253,17 @@ func removeMoment(w http.ResponseWriter, r *http.Request) {
 	path := getPath(time)
 	os.RemoveAll(path)
 
+	// if nothing left in the dir remove it
+	daypath := filepath.Dir(path)
+	files, err := ioutil.ReadDir(daypath)
+	if err != nil {
+		log.Println("error reading directory", daypath, err)
+		return
+	}
+	if len(files) == 0 {
+		os.Remove(daypath)
+	}
+
 	daysHandler(w, r)
 }
 
@@ -338,6 +349,7 @@ func main() {
 		//listener := autocert.NewListener("www.cjpais.com")
 		//log.Fatal(http.Serve(listener, nil))
 	} else {
+		log.Println("dev server launched on port :8080")
 		log.Fatal(http.ListenAndServe(":8080", nil))
 	}
 }

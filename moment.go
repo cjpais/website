@@ -34,7 +34,7 @@ func getTime(d, t, format string) (time.Time, error) {
 		return time.Parse(time.RFC3339, datetime)
 	} else if format == "cjcustom" {
 		datetime := d + ", " + t
-		return time.Parse("Monday, January 02, 2006, 3:04:05 PM:", datetime)
+		return time.Parse("Monday, January 2, 2006, 3:04:05 PM:", datetime)
 	}
 	return time.Time{}, fmt.Errorf("time format incorrect")
 }

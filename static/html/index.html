@@ -19,6 +19,7 @@
 	<div id="app">
 		<!-- TODO CLEAN THIS UP -->
 		<!-- THIS IS IF AUTHENTICATED -->
+		{{ uploading }}
 		<template v-if="auth">
 			<template v-if="!latestIsToday">
 				<!-- TODO LOOK AT NEW PAGE FORM -->
@@ -48,35 +49,41 @@
 						<photo v-if="newtype == 'website.photo'" v-bind:n="true"></photo>
 						<button v-on:click="cancelAdd">cancel</button>
 						<button v-on:click="submitMoment">submit</button>
+						<div v-if="uploading" style="grid-column:2">Uploading......</div>
 					</div>
 				</form>
 			</template>
 			<template v-for="(year, yidx) in data">
 			<template v-for="(month, midx) in year.Months">
 				<template v-for="(day, didx) in month.Days">
-					<form name="newmoment">
-						<div class="date-grid">
-							<input name="tz" class="hidden" v-bind:value="tz"></input>
-							<input name="format" class="hidden" value="cjcustom"></input>
-							<h3 v-if="newbool"><textarea name="date" class="h3">{{ year.Int | dateformat(month.Int , day.Int ) }}</textarea></h3>
-							<h3 v-else>{{ year.Int | dateformat(month.Int , day.Int ) }}</h3>
-							<div v-on:mouseover="" v-on:click="dropclick" v-on:mouseleave="">
-								<button>+</button>
-								<div id="dropdown" class="dropdown hidden">
-									<a v-on:click="addMoment($event, 'website.post')">Post</a>
-									<a v-on:click="addMoment($event, 'website.photo')">Photo</a>
-									<a href="/new">New</a>
+					<template v-if="day.Moments">
+						<form name="newmoment">
+							<div class="date-grid">
+								<input name="tz" class="hidden" v-bind:value="tz"></input>
+								<input name="format" class="hidden" value="cjcustom"></input>
+								<h3 v-if="newbool"><textarea name="date" class="h3">{{ year.Int | dateformat(month.Int , day.Int ) }}</textarea></h3>
+								<h3 v-else>{{ year.Int | dateformat(month.Int , day.Int ) }}</h3>
+								<div v-on:mouseover="" v-on:click="dropclick" v-on:mouseleave="">
+									<button>+</button>
+									<div id="dropdown" class="dropdown hidden">
+										<a v-on:click="addMoment($event, 'website.post')">Post</a>
+										<a v-on:click="addMoment($event, 'website.photo')">Photo</a>
+										<a href="/new">New</a>
+									</div>
 								</div>
 							</div>
-						</div>
-						<div id="newarea" class="posts hidden">
-							<div class="time"><b><textarea name="time" class="bold">{{ newtime }}:</textarea></b></div>
-							<post v-if="newtype == 'website.post'" v-bind:n="true"></post>
-							<photo v-if="newtype == 'website.photo'" v-bind:n="true"></photo>
-							<button v-on:click="cancelAdd">cancel</button>
-							<button v-on:click="submitMoment">submit</button>
-						</div>
-					</form>
+							<div id="newarea" class="posts hidden">
+								<div class="time">
+									<b><textarea name="time" class="bold">{{ newtime }}:</textarea></b>
+								</div>
+								<post v-if="newtype == 'website.post'" v-bind:n="true"></post>
+								<photo v-if="newtype == 'website.photo'" v-bind:n="true"></photo>
+								<button v-on:click="cancelAdd">cancel</button>
+								<button v-on:click="submitMoment">submit</button>
+								<div v-if="uploading" style="grid-column:2">Uploading......</div>
+							</div>
+						</form>
+					</template>
 					<form name="changeMoment">
 						<template v-for="(moment, midx) in day.Moments">
 							<div v-for="(post, key) in moment" class="posts">

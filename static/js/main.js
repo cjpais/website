@@ -12,6 +12,7 @@ var app = new Vue({
 			datestring: null,
 			inc: 0,
 			dropdown: false,
+			uploading: false,
 		}
 	},
 	mounted () {
@@ -82,17 +83,20 @@ var app = new Vue({
 		},
 		submitMoment: function (e) {
 			form = e.target.parentElement.parentElement;
+			this.uploading = true;
 			form.addEventListener("submit", function(e) {
 				e.preventDefault();
 
 				var data = new FormData(form);
 				var req = new XMLHttpRequest();
 
+
 				req.open("POST", "/api/new", true);
 				req.onload = function(ev) {
 					if (req.status == 200) {
 						//console.log("post good");
 					} else if (req.status == 201) {
+						this.uploading = false;
 						resp = JSON.parse(req.response)
 						app.createYears(resp)
 						// TODO clean this up bad

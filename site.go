@@ -256,6 +256,10 @@ func removeMoment(w http.ResponseWriter, r *http.Request) {
 	daysHandler(w, r)
 }
 
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "static/img/favicon.ico")
+}
+
 func auth(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "cjpais.com")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
@@ -289,6 +293,9 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", sfs))
 	tfs := http.FileServer(http.Dir("timeline"))
 	http.Handle("/timeline/", http.StripPrefix("/timeline/", tfs))
+
+	// serve favicon
+	http.HandleFunc("/favicon.ico", faviconHandler)
 
 	// serve home/login/new
 	http.HandleFunc("/", index)

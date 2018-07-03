@@ -340,7 +340,7 @@ func main() {
 		}
 		*/
 
-		//go http.ListenAndServe(":http", m.HTTPHandler(nil))
+		go http.ListenAndServe(":http", nil)
 		log.Println(http.ListenAndServeTLS(":https",
 						"/etc/letsencrypt/live/www.cjpais.com/fullchain.pem",
 						"/etc/letsencrypt/live/www.cjpais.com/privkey.pem",

@@ -17,15 +17,3 @@ to get metadata rather than it being part of the file. I am not sure what this m
 Also note there is a missing file from this directory. I may have hard coded my authentication into the site. 
 I know this is a absolutely terrible practice, but again I don't want to use a database so a static file 
 will suffice as it only needs 1 kv pair. This has been done with scrypt.
-
-### Update:
-I know this looks kind of crazy and whack from the outside, but this has been
-done with a specific purpose. I am going to build a distributed system with
-users and authentication soon. This site will be the first application that sits
-on top of it. It will be structured like a directory tree (I think). I am not
-sure how time will fit in yet, and it may not be so tree-like as it is here.
-This distributed system will be a distributed filesystem that also provides
-database a distributed key value interface and lookup mechanism. Time is the
-real battle in building this.  It needs to be done right the first time.
-
-See you soon!
